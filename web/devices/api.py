@@ -3,6 +3,8 @@ from dao.device_service import DeviceService
 from web.devices import devices
 from web.common.exceptions import BadRequest
 
+
+from ssh.ssh_service import SshService
 import json
 
 
@@ -59,9 +61,20 @@ def update_device():
 
 @devices.route('/device', methods=['DELETE'])
 def delete_device():
-    delete_user = request.args.get('hostname')
+    delete_device = request.args.get('hostname')
     # Exception in this request
-    if delete_user['hostname'] is None:
+    if delete_device['hostname'] is None:
         raise BadRequest("Hostname is required in args")
     result = device_service.delete_device(delete_device)
     return result
+
+@devices.route('/device/ssh',methods=['GET'])
+def ssh_device():
+    hostname = request.args.get('hostname')
+    command = request.args.get('command')
+    ssh_service = SshService(hostname)
+    result = ssh_service.run_command_on_host(command)
+    print(result)
+    return result
+
+

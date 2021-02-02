@@ -8,7 +8,7 @@ class DeviceService:
         self.devices = Device
         self.devices_list = list()
 
-    def get_device(self,hostname):
+    def get_device(self, hostname):
         self.devices = Device.objects(hostname=hostname).first()
         if not self.devices:
             return {'error': 'data not found'}
