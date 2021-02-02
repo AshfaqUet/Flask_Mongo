@@ -1,7 +1,7 @@
 from flask import request
 from dao.user_service import UserService
 from web.users import users
-
+from web.common.exceptions import BadRequest
 
 import json
 
@@ -13,7 +13,7 @@ user_service = UserService()
 def get_user():
     email = request.args.get('email')
     if email is None or email == "":
-        return {"message": "Email not given"}, 400
+        raise BadRequest("Email is required in args")
 
     result = user_service.get_user(email)
     return result
@@ -23,7 +23,7 @@ def get_user():
 def register_user():
     new_user = json.loads(request.data)
     if 'email' not in new_user.keys() or 'name' not in new_user.keys():
-        return {"Message": "Data not provided properly"}, 400
+        raise BadRequest("Email and Name is required in payload")
     result = user_service.add_new_user(new_user)
     return result
 
@@ -32,16 +32,16 @@ def register_user():
 def update_user():
     update_user = json.loads(request.data)
     if 'email' not in update_user.keys() or 'name' not in update_user.keys():
-        return {"Message":"Data not provided properly"}, 400
+        raise BadRequest("Email and Name is required in payload")
     result = user_service.update_user(update_user)
     return result
 
 
 @users.route('/user', methods=['DELETE'])
 def delete_user():
-    delete_user = json.loads(request.data)
+    delete_user = request.args.get('email')
     if 'email' not in delete_user.keys():
-        return {"Message": "Data not provided properly"}, 400
+        raise BadRequest("Email is required in args")
     result = user_service.delete_user(delete_user)
     return result
 
