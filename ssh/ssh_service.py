@@ -3,9 +3,9 @@ import paramiko
 
 
 class SshService:
-    def __init__(self,hostname=None):
+    def __init__(self, device_id=None):
         self.device_service = DeviceService()
-        self.hostname = hostname
+        self.device_id = device_id
         self.command = None
         self.result = None
         self.ssh_client = None
@@ -13,13 +13,20 @@ class SshService:
 
     def run_command_on_host(self,command):
         self.command = command
-        device = self.device_service.get_device(self.hostname)
-        if device:
-            connect = self.connect(device)
-            if connect:
-                result = self.run_command(self.command)
-                self.disconnect()
-                return result
+        if self.device_id is not None:
+            device = self.device_service.get_device(self.device_id)
+            if device['hostname']:
+                connect = self.connect(device)
+                if connect:
+                    result = self.run_command(self.command)
+                    self.disconnect()
+                    return result
+                else:
+                    return {"Message": "SSH connection failed"}, 200
+            else:
+                return {"Unknown Device": "This device not saved in system "}, 200
+        else:
+            return {"Hostname": "Hostname is none. Provide hostname in parameter"}, 400
 
 
     def connect(self, credentials):
@@ -37,7 +44,7 @@ class SshService:
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             client.connect(ip_addr, username=username, password=password)  # connecting to server
-            self.client = client
+            self.ssh_client = client
             return True
         except:
             return False
@@ -48,7 +55,7 @@ class SshService:
         :return: result of the command or message
         """
         try:
-            _, ss_stdout, ss_stderr = self.client.exec_command(command)  # executing command on server and return
+            _, ss_stdout, ss_stderr = self.ssh_client.exec_command(command)  # executing command on server and return
             # result
             r_out, r_err = ss_stdout.readlines(), ss_stderr.read()  # ss_stderr for error and ss_stdout for
             # result of command
@@ -65,12 +72,12 @@ class SshService:
 
     def disconnect(self):
         """
-        :return: True if the
+        :return: True if connection breaks
         """
         try:
-            if self.client is not None:
-                self.client.close()
-                self.client = None
+            if self.ssh_client is not None:
+                self.ssh_client.close()
+                self.ssh_client = None
             return True
         except:
             return False

@@ -1,10 +1,7 @@
-from flask import request, Response
+from flask import request
 from dao.device_service import DeviceService
 from web.devices import devices
 from web.common.exceptions import BadRequest
-
-
-from ssh.ssh_service import SshService
 import json
 
 
@@ -15,16 +12,16 @@ device_service = DeviceService()
 
 @devices.route('/index', methods=['GET'])
 def index():
-    return {"message":"Hello World"}
+    return {"message": "Hello World"}
 
 
 @devices.route('/device', methods=['GET'])
 def get_device():
-    hostname = request.args.get('hostname')
+    device_id = request.args.get('id')
     # Exception in this request
-    if hostname is None:
-        raise BadRequest("hostname is required in args")
-    result = device_service.get_device(hostname)
+    if device_id is None:
+        raise BadRequest("ID is required in args")
+    result = device_service.get_device(device_id)
     return result
 
 
@@ -61,20 +58,9 @@ def update_device():
 
 @devices.route('/device', methods=['DELETE'])
 def delete_device():
-    delete_device = request.args.get('hostname')
+    deleting_id = request.args.get('id')
     # Exception in this request
-    if delete_device['hostname'] is None:
-        raise BadRequest("Hostname is required in args")
-    result = device_service.delete_device(delete_device)
+    if deleting_id is None:
+        raise BadRequest("Id is required in args")
+    result = device_service.delete_device(deleting_id)
     return result
-
-@devices.route('/device/ssh',methods=['GET'])
-def ssh_device():
-    hostname = request.args.get('hostname')
-    command = request.args.get('command')
-    ssh_service = SshService(hostname)
-    result = ssh_service.run_command_on_host(command)
-    print(result)
-    return result
-
-

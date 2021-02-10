@@ -3,38 +3,41 @@ from models.device_models import Device
 
 logger = logging.getLogger("dao.device_service")
 
-class DeviceService:
+
+class DeviceService:                        # CRUD Operations of devices
     def __init__(self):
         self.devices = Device
         self.devices_list = list()
+        self.device_id = None
 
-    def get_device(self, hostname):
-        self.devices = Device.objects(hostname=hostname).first()
+    def get_device(self, device_id):
+        self.devices = Device.objects(id=device_id).first()
         if not self.devices:
             return {'error': 'data not found'}
         else:
             return self.devices.to_json()
 
-    def get_all_devices(self,device_name):
+    def get_all_devices(self, device_name):
         self.devices_list = Device.objects(name=device_name).all()
         if not self.devices_list:
             return {'error': 'data not found'}
         else:
             return self.devices_list
 
-    def add_new_device(self,device_info):
+    def add_new_device(self, device_info):
         self.devices = Device(
             name=device_info['name'],
             username=device_info['username'],
             hostname=device_info['hostname'],
             password=device_info['password'],
             ssh=device_info['ssh'],
-            passphrase=device_info['passphrase']
+            passphrase=device_info['passphrase'],
+            os=device_info['os']
         )
         self.devices.save()
         return self.devices.to_json()
 
-    def update_device(self,device_info):
+    def update_device(self, device_info):
         self.devices = Device.objects(hostname=device_info['hostname']).first()
         if not self.devices:
             return {'error': 'device not found'}
@@ -49,13 +52,14 @@ class DeviceService:
                 hostname=self.devices.to_json()["hostname"],
                 password=self.devices.to_json()["password"],
                 ssh=self.devices.to_json()["ssh"],
-                passphrase=self.devices.to_json()["passphrase"]
+                passphrase=self.devices.to_json()["passphrase"],
+                os=self.devices.to_json()["os"]
             )
 
         return self.devices.to_json()
 
-    def delete_device(self,device_info):
-        self.devices = Device.objects(hostname=device_info['hostname']).first()
+    def delete_device(self, device_id):
+        self.devices = Device.objects(id=device_id).first()
         if not self.devices:
             return {'error': 'data not found'}
         else:
